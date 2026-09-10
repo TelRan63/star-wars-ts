@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {type SubmitEvent, useEffect, useState} from "react";
 import {base_url, period_month} from "../utils/constants.ts";
 import ErrorPage from "./ErrorPage.tsx";
 import {useValidHero} from "../hooks/customHooks.ts";
@@ -13,7 +13,7 @@ const Contact = () => {
         }
     });
 
-    const {isHeroValid} = useValidHero();
+    const {isHeroValid, heroId} = useValidHero();
 
     useEffect(() => {
         const getPlanets = async () => {
@@ -30,12 +30,31 @@ const Contact = () => {
         if (planets.length === 1) {
             getPlanets().then(() => console.log('Planets were loaded'));
         }
-    }, [])
+    }, [planets.length])
+
+    const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const body = {
+            firstName: e.currentTarget.firstname.value,
+            lastName: e.currentTarget.lastname.value,
+            planet: e.currentTarget.planet.value,
+            message: e.currentTarget.subject.value,
+            hero: heroId
+        }
+        fetch('https://cctahlf8ma.execute-api.us-east-1.amazonaws.com/dev/contact-form', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        })
+            .then(res => res.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Error:', error))
+    }
 
     return isHeroValid ? (
-        <form className={`w-4/5 my-0 mx-auto rounded-[5px] bg-[#f2f2f2] p-5`} onSubmit={(e) => {
-            e.preventDefault();
-        }}>
+        <form className={`w-4/5 my-0 mx-auto rounded-[5px] bg-[#f2f2f2] p-5`} onSubmit={handleSubmit}>
             <label className={`w-full text-danger`}>First Name
                 <input className={`text-black border w-full p-3 border-[#ccc] rounded-sm mt-1.5 mb-4 resize-y`}
                        type="text"
